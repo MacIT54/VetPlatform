@@ -1,0 +1,4 @@
+rootProject.name = 'vet'
+
+include 'auth-service'
+include 'profile-service'
