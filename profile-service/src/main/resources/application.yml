@@ -1,3 +1,18 @@
 server:
   port: 8082
+spring:
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017/profile_db
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    tags-sorter: alpha
+  api-docs:
+    path: /v3/api-docs
+  info:
+    title: PetClinic Profile Service API
+    version: 1.0.0
+    description: API для управления профилями, клиниками и питомцами
 
