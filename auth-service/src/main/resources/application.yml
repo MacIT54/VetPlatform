@@ -1,2 +1,16 @@
 server:
-  port: 8081
+  port: 8086
+
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/security_db
+    username: postgres
+    password: 471979
+    driver-class-name: org.postgresql.Driver
+
+  liquibase:
+    change-log: classpath:db/change-log/db.change-log.sql
+
+jwt:
+  secret: MySuperLongSecretKeyThatIsAtLeast32CharactersLong!
+  expiration: 7200000
