@@ -16,3 +16,15 @@ springdoc:
     version: 1.0.0
     description: API для управления профилями, клиниками и питомцами
 
+auth:
+  service:
+    url: http://auth-service:8081
+
+feign:
+  client:
+    config:
+      default:
+        connectTimeout: 5000
+        readTimeout: 5000
+        loggerLevel: basic
+

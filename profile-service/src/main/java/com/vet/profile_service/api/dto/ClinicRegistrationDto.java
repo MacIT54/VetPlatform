@@ -9,6 +9,7 @@ public record ClinicRegistrationDto(
         @NotBlank String name,
         @NotBlank String description,
         @NotBlank String phone,
+        @NotBlank String email,
         @NotNull AddressDto address,
         @NotBlank String licenseNumber,
         List<String> workingHours

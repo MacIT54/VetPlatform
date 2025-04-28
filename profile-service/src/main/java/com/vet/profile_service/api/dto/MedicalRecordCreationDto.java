@@ -1,18 +1,14 @@
 package com.vet.profile_service.api.dto;
 
-import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import lombok.Builder;
-import lombok.Getter;
 
 import java.time.LocalDate;
 
-public record MedicalRecordDto(
-        String id,
-        String diagnosis,
+public record MedicalRecordCreationDto(
+        @NotBlank String diagnosis,
         String treatment,
         String notes,
-        LocalDate date,
-        VetShortDto vet
+        @NotNull LocalDate date,
+        @NotBlank String vetId
 ) {}

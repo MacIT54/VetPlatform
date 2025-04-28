@@ -1,0 +1,78 @@
+version: '3.8'
+
+services:
+  # MongoDB
+  mongodb:
+    image: mongo:6.0
+    container_name: mongodb
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    restart: unless-stopped
+
+  # PostgreSQL
+  postgresql:
+    container_name: security_db
+    image: postgres:14
+    environment:
+      POSTGRES_USER: security_db
+      POSTGRES_PASSWORD: example
+      POSTGRES_DB: security_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  # Сервис аутентификации
+  auth-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: auth-service
+    command: ["java", "-jar", "/app/auth.jar"]
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      JWT_SECRET: MySuperLongSecretKeyThatIsAtLeast32CharactersLong!
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgresql:5432/security_db
+      SPRING_DATASOURCE_USERNAME: security_db
+      SPRING_DATASOURCE_PASSWORD: example
+    ports:
+      - "8081:8081"
+    networks:
+      - vet-network
+    depends_on:
+      - mongodb
+      - postgresql
+    restart: unless-stopped
+
+  # Сервис профилей
+  profile-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: profile-service
+    command: ["java", "-jar", "/app/profile.jar"]
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATA_MONGODB_URI: mongodb://root:example@mongodb:27017/profile_db?authSource=admin
+    ports:
+      - "8082:8082"
+    networks:
+      - vet-network
+    depends_on:
+      - mongodb
+      - auth-service
+    restart: unless-stopped
+
+volumes:
+  mongodb_data:
+  postgres_data:
+
+networks:
+  vet-network:
+    driver: bridge
