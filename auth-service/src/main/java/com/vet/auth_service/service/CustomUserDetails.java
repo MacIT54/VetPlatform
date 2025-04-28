@@ -15,32 +15,32 @@ public class CustomUserDetails implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return Collections.emptyList(); // Если нужно, добавьте роли, например, ROLE_USER или другие.
+        return Collections.emptyList();
     }
 
     @Override
     public String getPassword() {
-        return user.getPassword(); // Возвращаем зашифрованный пароль
+        return user.getPassword();
     }
 
     @Override
     public String getUsername() {
-        return user.getLogin(); // Логин пользователя
+        return user.getLogin();
     }
 
     @Override
     public boolean isAccountNonExpired() {
-        return true; // По умолчанию считаем аккаунт не истекшим
+        return true;
     }
 
     @Override
     public boolean isAccountNonLocked() {
-        return true; // По умолчанию аккаунт не заблокирован
+        return true;
     }
 
     @Override
     public boolean isCredentialsNonExpired() {
-        return true; // По умолчанию считаем, что креды не истекли
+        return true;
     }
 
     @Override

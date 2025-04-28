@@ -1,13 +1,12 @@
 package com.vet.auth_service.api.controller;
 
+import com.vet.auth_service.api.exception.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import com.vet.auth_service.api.exception.InvalidPasswordException;
-import com.vet.auth_service.api.exception.UserAlreadyExistsException;
-import com.vet.auth_service.api.exception.UserNotFoundException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -35,5 +34,20 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<String> handleBadCredentials(BadCredentialsException ex) {
         return new ResponseEntity<>("Invalid login or password", HttpStatus.UNAUTHORIZED);
+    }
+
+    @ExceptionHandler(UserBannedException.class)
+    public ResponseEntity<String> handleUserBanned(UserBannedException ex) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.FORBIDDEN);
+    }
+
+    @ExceptionHandler(DisabledException.class)
+    public ResponseEntity<String> handleDisabledUser(DisabledException ex) {
+        return new ResponseEntity<>("User banned", HttpStatus.FORBIDDEN);
+    }
+
+    @ExceptionHandler(InvalidTokenException.class)
+    public ResponseEntity<String> handleInvalidToken(InvalidTokenException ex) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.UNAUTHORIZED);
     }
 }

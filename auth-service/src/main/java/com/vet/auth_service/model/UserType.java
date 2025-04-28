@@ -1,5 +1,5 @@
 package com.vet.auth_service.model;
 
 public enum UserType {
-    USER, VET_USER, ADMIN
+    USER, VETUSER_FREELANCE, CLINIC, VET_USER_CLINIC, ADMIN, VET_ADMIN, CLINIC_ADMIN
 }

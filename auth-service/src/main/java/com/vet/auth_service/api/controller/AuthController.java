@@ -1,16 +1,11 @@
 package com.vet.auth_service.api.controller;
 
+import com.vet.auth_service.api.dto.*;
+import com.vet.auth_service.repository.ITokenSessionRepository;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import com.vet.auth_service.api.dto.ChangePasswordRequest;
-import com.vet.auth_service.api.dto.JwtResponse;
-import com.vet.auth_service.api.dto.LoginRequest;
-import com.vet.auth_service.api.dto.SignupRequest;
+import org.springframework.web.bind.annotation.*;
 import com.vet.auth_service.service.AuthService;
 
 @RestController
@@ -19,11 +14,12 @@ import com.vet.auth_service.service.AuthService;
 public class AuthController {
 
     private final AuthService authService;
+    private final ITokenSessionRepository tokenSessionRepository;
 
     @PostMapping("/signup")
     public ResponseEntity<?> registerUser(@Valid @RequestBody SignupRequest request) {
-        authService.signup(request);
-        return ResponseEntity.ok("User registered successfully");
+        SignupResponse response = authService.signup(request);
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/login")
@@ -32,7 +28,20 @@ public class AuthController {
     }
 
     @PostMapping("/change-password")
-    public void changePassword(@RequestBody ChangePasswordRequest request) {
+    public ChangePasswordResponse changePassword(@RequestBody ChangePasswordRequest request) {
         authService.changePassword(request);
+        return new ChangePasswordResponse("Change Password Successful");
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(@RequestHeader("Authorization") String bearerToken) {
+        String token = bearerToken.substring(7);
+
+        tokenSessionRepository.findByToken(token).ifPresent(session -> {
+            session.setRevoked(true);
+            tokenSessionRepository.save(session);
+        });
+
+        return ResponseEntity.ok().build();
     }
 }

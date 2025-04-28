@@ -1,8 +1,10 @@
 package com.vet.auth_service.security.jwt;
 
+import com.vet.auth_service.model.AuthUser;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -14,11 +16,18 @@ public class JwtTokenProvider {
     @Value("${jwt.secret}")
     private String secretKey;
 
+    @Getter
     @Value("${jwt.expiration}")
     private long validityInMilliseconds;
 
-    public String createToken(String username) {
-        Claims claims = Jwts.claims().setSubject(username);
+    public String createToken(AuthUser authUser) {
+        Claims claims = Jwts.claims().setSubject(authUser.getLogin());
+        claims.put("role", authUser.getUserType().name());
+        claims.put("name", authUser.getName());
+        claims.put("surname", authUser.getSurname());
+        claims.put("email", authUser.getEmail());
+        claims.put("enabled", authUser.isEnabled());
+
         Date now = new Date();
         Date validity = new Date(now.getTime() + validityInMilliseconds);
 
@@ -34,7 +43,27 @@ public class JwtTokenProvider {
         return getClaims(token).getSubject();
     }
 
-    private Claims getClaims(String token) {
+    public String getRole(String token) {
+        return (String) getClaims(token).get("role");
+    }
+
+    public String getName(String token) {
+        return (String) getClaims(token).get("name");
+    }
+
+    public String getSurname(String token) {
+        return (String) getClaims(token).get("surname");
+    }
+
+    public String getEmail(String token) {
+        return (String) getClaims(token).get("email");
+    }
+
+    public boolean getEnabled(String token) {
+        return (boolean) getClaims(token).get("enabled");
+    }
+
+    public Claims getClaims(String token) {
         return Jwts.parser()
                 .setSigningKey(secretKey)
                 .parseClaimsJws(token)
@@ -46,6 +75,12 @@ public class JwtTokenProvider {
     }
 
     public boolean validateToken(String token) {
-        return !isTokenExpired(token);
+        try {
+            getClaims(token);
+            return !isTokenExpired(token);
+        } catch (Exception e) {
+            return false;
+        }
     }
 }
+
