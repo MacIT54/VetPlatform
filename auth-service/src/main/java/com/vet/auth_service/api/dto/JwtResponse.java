@@ -1,6 +1,5 @@
 package com.vet.auth_service.api.dto;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
 
 @Data
@@ -12,4 +11,3 @@ public class JwtResponse {
         this.token = token;
     }
 }
-

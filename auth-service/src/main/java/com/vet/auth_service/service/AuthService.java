@@ -1,5 +1,9 @@
 package com.vet.auth_service.service;
 
+import com.vet.auth_service.api.dto.*;
+import com.vet.auth_service.api.exception.UserBannedException;
+import com.vet.auth_service.model.TokenSession;
+import com.vet.auth_service.repository.ITokenSessionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -9,16 +13,14 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import com.vet.auth_service.api.dto.ChangePasswordRequest;
-import com.vet.auth_service.api.dto.JwtResponse;
-import com.vet.auth_service.api.dto.LoginRequest;
-import com.vet.auth_service.api.dto.SignupRequest;
 import com.vet.auth_service.api.exception.InvalidPasswordException;
 import com.vet.auth_service.api.exception.UserAlreadyExistsException;
 import com.vet.auth_service.api.exception.UserNotFoundException;
 import com.vet.auth_service.model.AuthUser;
 import com.vet.auth_service.repository.IAuthUserRepository;
 import com.vet.auth_service.security.jwt.JwtTokenProvider;
+
+import java.time.LocalDateTime;
 
 @Service
 public class AuthService {
@@ -27,19 +29,22 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
     private final IAuthUserRepository authUserRepository;
     private final PasswordEncoder passwordEncoder;
+    private final ITokenSessionRepository tokenSessionRepository;
 
     @Autowired
     public AuthService(JwtTokenProvider jwtTokenProvider,
                        AuthenticationManager authenticationManager,
                        IAuthUserRepository authUserRepository,
-                       PasswordEncoder passwordEncoder) {
+                       PasswordEncoder passwordEncoder,
+                       ITokenSessionRepository tokenSessionRepository) {
         this.jwtTokenProvider = jwtTokenProvider;
         this.authenticationManager = authenticationManager;
         this.authUserRepository = authUserRepository;
         this.passwordEncoder = passwordEncoder;
+        this.tokenSessionRepository = tokenSessionRepository;
     }
 
-    public void signup(SignupRequest request) {
+    public SignupResponse signup(SignupRequest request) {
         if (authUserRepository.existsByLogin(request.getLogin())) {
             throw new UserAlreadyExistsException("User with login " + request.getLogin() + " already exists.");
         }
@@ -54,6 +59,8 @@ public class AuthService {
         user.setEnabled(true);
 
         authUserRepository.save(user);
+
+        return new SignupResponse("Signup Successful");
     }
 
     public JwtResponse login(LoginRequest request) {
@@ -63,15 +70,34 @@ public class AuthService {
             );
 
             UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-            String token = jwtTokenProvider.createToken(userDetails.getUsername());
+
+            AuthUser authUser = authUserRepository.findByLogin(userDetails.getUsername())
+                    .orElseThrow(() -> new UserNotFoundException("User with login " + userDetails.getUsername() + " not found."));
+
+            if (!authUser.isEnabled()) {
+                throw new UserBannedException("User is disabled");
+            }
+
+            String token = jwtTokenProvider.createToken(authUser);
+
+            TokenSession session = TokenSession.builder()
+                    .authUser(authUser)
+                    .token(token)
+                    .issuedAt(LocalDateTime.now())
+                    .expiresAt(LocalDateTime.now().plusSeconds(jwtTokenProvider.getValidityInMilliseconds() / 1000))
+                    .revoked(false)
+                    .build();
+
+            tokenSessionRepository.save(session);
 
             return new JwtResponse(token);
+
         } catch (BadCredentialsException e) {
             throw new RuntimeException("Invalid login or password", e);
         }
     }
 
-    public void changePassword(ChangePasswordRequest request) {
+    public ChangePasswordResponse changePassword(ChangePasswordRequest request) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
 
@@ -84,5 +110,7 @@ public class AuthService {
 
         user.setPassword(passwordEncoder.encode(request.newPassword()));
         authUserRepository.save(user);
+
+        return new ChangePasswordResponse("Successfully changed password.");
     }
 }
