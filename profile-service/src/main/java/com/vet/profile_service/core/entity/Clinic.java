@@ -2,6 +2,7 @@ package com.vet.profile_service.core.entity;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
+import lombok.Setter;
 import org.springframework.boot.autoconfigure.amqp.RabbitConnectionDetails;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
@@ -16,6 +17,7 @@ import java.util.Set;
 
 @Document(collection = "clinics")
 @Data
+@Setter
 public class Clinic {
     @Id
     private String id;

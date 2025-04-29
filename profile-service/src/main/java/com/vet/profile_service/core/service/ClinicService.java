@@ -75,7 +75,7 @@ public class ClinicService {
 
     public List<ClinicShortDto> getAllClinics(String token) {
         verifyToken(token);
-        return clinicRepository.findAllByDeletedFalse().stream()
+        return clinicRepository.findAll().stream()
                 .map(c -> new ClinicShortDto(c.getId(), c.getName(), c.getLogoUrl()))
                 .toList();
     }
@@ -108,7 +108,7 @@ public class ClinicService {
                 new TokenVerifyRequest(extractToken(token))
         );
 
-        if (!response.isEnabled()) {
+        if (response.isEnabled()) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "User account is disabled");
         }
     }

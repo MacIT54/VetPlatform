@@ -12,11 +12,13 @@ services:
       - "27017:27017"
     volumes:
       - mongodb_data:/data/db
+    networks:
+      - vet-network
     restart: unless-stopped
 
   # PostgreSQL
   postgresql:
-    container_name: security_db
+    container_name: postgresql  # Изменил имя для консистентности
     image: postgres:14
     environment:
       POSTGRES_USER: security_db
@@ -26,6 +28,8 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    networks:
+      - vet-network
     restart: unless-stopped
 
   # Сервис аутентификации
