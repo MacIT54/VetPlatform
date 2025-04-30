@@ -32,6 +32,22 @@ services:
       - vet-network
     restart: unless-stopped
 
+  postgresql-appointment:
+    image: postgres:14
+    container_name: postgresql-appointment
+    environment:
+      POSTGRES_USER: appointment_user
+      POSTGRES_PASSWORD: example
+      POSTGRES_DB: appointment_db
+    ports:
+      - "5433:5432"  # Маппинг на другой хост-порт
+    volumes:
+      - postgres_appointment_data:/var/lib/postgresql/data
+      - ./appointment-service/db/migrations:/docker-entrypoint-initdb.d  # Для миграций
+    networks:
+      - vet-network
+    restart: unless-stopped
+
   # Сервис аутентификации
   auth-service:
     build:
@@ -73,9 +89,43 @@ services:
       - auth-service
     restart: unless-stopped
 
+  # Redis
+  redis:
+    image: redis:7
+    container_name: redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - vet-network
+    restart: unless-stopped
+
+    # Обновлённый appointment-service
+  appointment-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: appointment-service
+    command: [ "java", "-jar", "/app/appointment.jar", "--spring.profiles.active=docker" ]
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+    ports:
+      - "8083:8083"
+    networks:
+      - vet-network
+    depends_on:
+      - postgresql-appointment
+      - redis
+      - profile-service
+      - auth-service
+    restart: unless-stopped
+
 volumes:
   mongodb_data:
   postgres_data:
+  redis_data:
+  postgres_appointment_data:
 
 networks:
   vet-network:

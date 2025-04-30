@@ -14,8 +14,16 @@ COPY profile-service/build.gradle ./profile-service/
 COPY profile-service/settings.gradle ./profile-service/
 COPY profile-service/src ./profile-service/src
 
+COPY appointment-service/gradle ./appointment-service/gradle
+COPY appointment-service/gradlew ./appointment-service/
+COPY appointment-service/build.gradle ./appointment-service/
+COPY appointment-service/settings.gradle ./appointment-service/
+COPY appointment-service/src ./appointment-service/src
+
 RUN cd auth-service && ./gradlew bootJar -x test && mv build/libs/*.jar /workspace/auth.jar
 RUN cd profile-service && ./gradlew bootJar -x test && mv build/libs/*.jar /workspace/profile.jar
+RUN cd appointment-service && ./gradlew bootJar -x test && mv build/libs/*.jar /workspace/appointment.jar
+
 
 FROM eclipse-temurin:17-jre-jammy
 
@@ -25,5 +33,6 @@ WORKDIR /app
 
 COPY --from=builder /workspace/auth.jar /app/auth.jar
 COPY --from=builder /workspace/profile.jar /app/profile.jar
+COPY --from=builder /workspace/appointment.jar /app/appointment.jar
 
 CMD ["echo", "Use specific command in docker-compose"]
