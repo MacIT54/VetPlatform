@@ -1,9 +1,12 @@
 package com.vet.auth_service.service;
 
+import com.vet.auth_service.api.client.ProfileServiceClient;
 import com.vet.auth_service.api.dto.*;
 import com.vet.auth_service.api.exception.UserBannedException;
 import com.vet.auth_service.model.TokenSession;
 import com.vet.auth_service.repository.ITokenSessionRepository;
+import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -23,6 +26,7 @@ import com.vet.auth_service.security.jwt.JwtTokenProvider;
 import java.time.LocalDateTime;
 
 @Service
+@RequiredArgsConstructor
 public class AuthService {
 
     private final JwtTokenProvider jwtTokenProvider;
@@ -30,20 +34,9 @@ public class AuthService {
     private final IAuthUserRepository authUserRepository;
     private final PasswordEncoder passwordEncoder;
     private final ITokenSessionRepository tokenSessionRepository;
+    private final ProfileServiceClient profileServiceClient;
 
-    @Autowired
-    public AuthService(JwtTokenProvider jwtTokenProvider,
-                       AuthenticationManager authenticationManager,
-                       IAuthUserRepository authUserRepository,
-                       PasswordEncoder passwordEncoder,
-                       ITokenSessionRepository tokenSessionRepository) {
-        this.jwtTokenProvider = jwtTokenProvider;
-        this.authenticationManager = authenticationManager;
-        this.authUserRepository = authUserRepository;
-        this.passwordEncoder = passwordEncoder;
-        this.tokenSessionRepository = tokenSessionRepository;
-    }
-
+    @Transactional
     public SignupResponse signup(SignupRequest request) {
         if (authUserRepository.existsByLogin(request.getLogin())) {
             throw new UserAlreadyExistsException("User with login " + request.getLogin() + " already exists.");
@@ -58,7 +51,15 @@ public class AuthService {
         user.setUserType(request.getUserType());
         user.setEnabled(true);
 
-        authUserRepository.save(user);
+        AuthUser saveUser = authUserRepository.save(user);
+        UserRegistrationDto userRegistrationDto = UserRegistrationDto.builder()
+                .userId(String.valueOf(saveUser.getId()))
+                .email(saveUser.getEmail())
+                .lastName(saveUser.getName())
+                .firstName(saveUser.getSurname())
+                .build();
+
+        profileServiceClient.createProfile(userRegistrationDto);
 
         return new SignupResponse("Signup Successful");
     }

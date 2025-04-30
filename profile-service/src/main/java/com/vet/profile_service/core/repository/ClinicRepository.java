@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface ClinicRepository extends MongoRepository<Clinic, String> {
-    Optional<Clinic> findByIdAndDeletedFalse(String id);
+    Optional<Clinic> findById(String id);
     List<Clinic> findAllByDeletedFalse();
     Page<Clinic> findByServicesContainingAndDeletedFalse(String service, Pageable pageable);
     Page<Clinic> findByCityAndDeletedFalse(String city, Pageable pageable);

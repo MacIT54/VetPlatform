@@ -1,7 +1,9 @@
 package com.vet.profile_service.api.controller;
 
 import com.vet.profile_service.api.dto.MedicalRecordDto;
+import com.vet.profile_service.api.dto.PetDto;
 import com.vet.profile_service.api.dto.PetRegistrationDto;
+import com.vet.profile_service.api.dto.PetUpdateDto;
 import com.vet.profile_service.api.dto.UserProfileDto;
 import com.vet.profile_service.core.service.PetService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -9,11 +11,14 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -34,15 +39,16 @@ public class PetController {
     @ApiResponse(responseCode = "201", description = "Питомец создан")
     @PostMapping
     public PetRegistrationDto addPet(
-            @RequestBody @Schema(description = "Данные питомца", required = true) PetRegistrationDto petDto) {
-        return petService.addPet(petDto);
+            @RequestBody @Schema(description = "Данные питомца", required = true) PetRegistrationDto petDto,
+            @RequestHeader("Authorization") String token) {
+        return petService.addPet(petDto, token);
     }
 
     @Operation(summary = "Получить моих питомцев", description = "Возвращает список питомцев текущего пользователя")
     @ApiResponse(responseCode = "200", description = "Успешный запрос")
     @GetMapping("/my")
-    public List<PetRegistrationDto> getMyPets() {
-        return petService.getMyPets("1");
+    public List<PetRegistrationDto> getMyPets(@RequestHeader("Authorization") String token) {
+        return petService.getMyPets(token);
     }
 
     @Operation(
@@ -53,15 +59,26 @@ public class PetController {
     @PostMapping("/{petId}/medical-records")
     public MedicalRecordDto addMedicalRecord(
             @Parameter(description = "ID питомца", required = true) @PathVariable Long petId,
-            @RequestBody @Schema(description = "Данные медкарты", required = true) MedicalRecordDto recordDto) {
-        return petService.addMedicalRecord(String.valueOf(petId), recordDto);
+            @RequestBody @Schema(description = "Данные медкарты", required = true) MedicalRecordDto recordDto,
+            @RequestHeader("Authorization") String token) {
+        return petService.addMedicalRecord(String.valueOf(petId), recordDto, token);
+    }
+
+    @Operation(summary = "Обновить данные питомца")
+    @PutMapping("/me/pets/{petId}")
+    public PetDto updatePet(
+            @RequestHeader("Authorization") String token,
+            @PathVariable Long petId,
+            @Valid @RequestBody PetUpdateDto updateDto) {
+        return petService.updatePet(token, petId, updateDto);
     }
 
     @Operation(summary = "Получить медкарту питомца", description = "Возвращает все записи медкарты")
     @ApiResponse(responseCode = "200", description = "Успешный запрос")
     @GetMapping("/{petId}/medical-records")
     public List<MedicalRecordDto> getMedicalRecords(
-            @Parameter(description = "ID питомца", required = true) @PathVariable Long petId) {
-        return null;
+            @Parameter(description = "ID питомца", required = true) @PathVariable Long petId,
+            @RequestHeader("Authorization") String token) {
+        return petService.getMedicalRecords(String.valueOf(petId), token);
     }
 }

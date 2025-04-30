@@ -32,12 +32,13 @@ public class TokenVerifyService {
         Claims claims = provider.getClaims(request.token());
 
         String username = claims.getSubject();
+        String id = claims.get("id", String.class);
         String role = claims.get("role", String.class);
         String name = claims.get("name", String.class);
         String surname = claims.get("surname", String.class);
         String email = claims.get("email", String.class);
         boolean isEnabled = claims.get("enabled", Boolean.class);
 
-        return new TokenVerifyResponse(username, role, name, surname, email, isEnabled);
+        return new TokenVerifyResponse(id, username, role, name, surname, email, isEnabled);
     }
 }

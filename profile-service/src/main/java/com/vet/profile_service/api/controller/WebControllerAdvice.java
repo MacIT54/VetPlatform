@@ -3,7 +3,7 @@ package com.vet.profile_service.api.controller;
 import com.vet.profile_service.api.dto.ErrorResponse;
 import com.vet.profile_service.core.exception.ErrorCode;
 import com.vet.profile_service.core.exception.ServiceException;
-import feign.FeignException;
+//import feign.FeignException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -27,15 +27,15 @@ public class WebControllerAdvice {
         return new ResponseEntity<>(errorResponse, HttpStatus.valueOf(errorCode.getStatus()));
     }
 
-    @ExceptionHandler(FeignException.class)
-    public ResponseEntity<ErrorResponse> handleFeignException(FeignException ex) {
-        if (ex.status() == 403) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body(new ErrorResponse(ex.status(), ex.getMessage(),"Access denied"));
-        }
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(new ErrorResponse(ex.status(), ex.getMessage(),"Service unavailable"));
-    }
+//    @ExceptionHandler(FeignException.class)
+//    public ResponseEntity<ErrorResponse> handleFeignException(FeignException ex) {
+//        if (ex.status() == 403) {
+//            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+//                    .body(new ErrorResponse(ex.status(), ex.getMessage(),"Access denied"));
+//        }
+//        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+//                .body(new ErrorResponse(ex.status(), ex.getMessage(),"Service unavailable"));
+//    }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGlobalException(Exception exception) {

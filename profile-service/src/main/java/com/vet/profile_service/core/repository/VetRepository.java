@@ -12,6 +12,8 @@ public interface VetRepository extends MongoRepository<Vet, String> {
     Optional<Vet> findById(String id);
     List<Vet> findByClinicId(String clinicId);
     List<Vet> findBySpecializationAndCity(String specialization, String city);
-    List<Vet> findBySpecialization(String specialization);
     List<Vet> findByCity(String city);
+    List<Vet> findAll();
+    List<Vet> findBySpecialization(String specialization);
+    List<Vet> findByClinicIsNull();
 }

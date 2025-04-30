@@ -1,5 +1,6 @@
 server:
   port: 8082
+
 spring:
   data:
     mongodb:
@@ -8,7 +9,6 @@ spring:
 springdoc:
   swagger-ui:
     path: /swagger-ui.html
-    tags-sorter: alpha
   api-docs:
     path: /v3/api-docs
   info:
@@ -20,6 +20,10 @@ auth:
   service:
     url: http://auth-service:8081
 
+appointment:
+  service:
+    url: http://appointment-service:8083
+
 feign:
   client:
     config:
@@ -27,4 +31,3 @@ feign:
         connectTimeout: 5000
         readTimeout: 5000
         loggerLevel: basic
-

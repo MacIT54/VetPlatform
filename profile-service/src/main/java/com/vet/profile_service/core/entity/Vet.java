@@ -28,6 +28,7 @@ public class Vet {
 
     private String qualification;
     private String bio;
+    private String email;
     private String avatarUrl;
 
     @DBRef

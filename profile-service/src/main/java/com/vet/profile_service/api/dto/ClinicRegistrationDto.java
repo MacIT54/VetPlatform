@@ -31,5 +31,5 @@ public record ClinicRegistrationDto(
         @NotBlank(message = "Номер лицензии обязателен")
         String licenseNumber,
 
-        List<@NotBlank(message = "График работы не может быть пустым") String> workingHours
+        List<String> workingHours
 ) {}

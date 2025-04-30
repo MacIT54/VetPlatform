@@ -12,5 +12,7 @@ public interface IAuthUserRepository extends JpaRepository<AuthUser, Long> {
 
     boolean existsByLogin(String login);
 
+    AuthUser save(AuthUser user);
+
     boolean existsByEmail(String email);
 }

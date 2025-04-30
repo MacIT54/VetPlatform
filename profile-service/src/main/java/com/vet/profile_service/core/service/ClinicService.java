@@ -8,6 +8,8 @@ import com.vet.profile_service.api.dto.ClinicDto;
 import com.vet.profile_service.api.dto.ClinicRegistrationDto;
 import com.vet.profile_service.api.dto.ClinicShortDto;
 import com.vet.profile_service.api.dto.UserRole;
+import com.vet.profile_service.api.dto.VetDto;
+import com.vet.profile_service.api.dto.VetRegistrationDto;
 import com.vet.profile_service.api.dto.VetShortDto;
 import com.vet.profile_service.core.entity.Clinic;
 import com.vet.profile_service.core.entity.Profile;
@@ -32,9 +34,10 @@ public class ClinicService {
     private final ClinicRepository clinicRepository;
     private final VetRepository vetRepository;
     private final AuthServiceClient authServiceClient;
+    private final TokenVerifyService tokenVerifyService;
 
     public ClinicDto createClinic(ClinicRegistrationDto dto, String token) {
-        verifyTokenAndCheckAdminRole(token);
+        tokenVerifyService.verifyTokenAndCheckAdminRole(token);
         Clinic clinic = new Clinic();
         clinic.setName(dto.name());
         clinic.setDescription(dto.description());
@@ -50,8 +53,8 @@ public class ClinicService {
     }
 
     public ClinicDto addVetToClinic(String clinicId, String vetId, String token) {
-        verifyTokenAndCheckAdminOrVetRole(token);
-        Clinic clinic = clinicRepository.findByIdAndDeletedFalse(clinicId)
+        tokenVerifyService.verifyTokenAndCheckAdminOrVetRole(token);
+        Clinic clinic = clinicRepository.findById(clinicId)
                 .orElseThrow(() -> new ServiceException(ErrorCode.NOT_FOUND, "Clinic not found"));
 
         Vet vet = vetRepository.findById(vetId)
@@ -67,14 +70,14 @@ public class ClinicService {
     }
 
     public ClinicShortDto getClinic(String clinicId, String token) {
-        verifyToken(token);
-        Clinic clinic = clinicRepository.findByIdAndDeletedFalse(clinicId)
+        tokenVerifyService.verifyToken(token);
+        Clinic clinic = clinicRepository.findById(clinicId)
                 .orElseThrow(() -> new ServiceException(ErrorCode.NOT_FOUND, "Clinic not found"));
         return new ClinicShortDto(clinic.getId(), clinic.getName(), clinic.getLogoUrl());
     }
 
     public List<ClinicShortDto> getAllClinics(String token) {
-        verifyToken(token);
+        tokenVerifyService.verifyToken(token);
         return clinicRepository.findAll().stream()
                 .map(c -> new ClinicShortDto(c.getId(), c.getName(), c.getLogoUrl()))
                 .toList();
@@ -103,42 +106,41 @@ public class ClinicService {
         );
     }
 
-    private void verifyToken(String token) {
-        TokenVerifyResponse response = authServiceClient.verifyToken(
-                new TokenVerifyRequest(extractToken(token))
+    public List<VetDto> getAllIndependentVets(String token) {
+        tokenVerifyService.verifyToken(token);
+
+        return vetRepository.findByClinicIsNull().stream()
+                .map(this::mapToVetDto)
+                .toList();
+    }
+
+    private VetDto mapToVetDto(Vet vet) {
+        return new VetDto(
+                vet.getId(),
+                vet.getFirstName(),
+                vet.getLastName(),
+                vet.getSpecialization(),
+                vet.getQualification(),
+                vet.getBio(),
+                vet.getAvatarUrl(),
+                vet.getEmail(),
+                vet.getClinic() != null
+                        ? new ClinicShortDto(vet.getClinic().getId(), vet.getClinic().getName(), vet.getClinic().getLogoUrl())
+                        : null,
+                vet.getServices(),
+                new AddressDto(vet.getCity(), vet.getStreet(), vet.getBuilding())
         );
-
-        if (response.isEnabled()) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "User account is disabled");
-        }
     }
 
-    private void verifyTokenAndCheckAdminRole(String token) {
-        TokenVerifyResponse response = authServiceClient.verifyToken(
-                new TokenVerifyRequest(extractToken(token))
-        );
-
-        if (!"ADMIN".equals(response.role())) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Admin role required");
-        }
+    public void deleteClinic(String clinicId) {
+        Clinic clinic = clinicRepository.findById(clinicId)
+                .orElseThrow(() -> new ServiceException(ErrorCode.NOT_FOUND, "Clinic not found"));
+        clinic.setDeleted(true);
+        clinicRepository.save(clinic);
     }
 
-    private void verifyTokenAndCheckAdminOrVetRole(String token) {
-        TokenVerifyResponse response = authServiceClient.verifyToken(
-                new TokenVerifyRequest(extractToken(token))
-        );
 
-        if (!"ADMIN".equals(response.role()) && !"VET".equals(response.role())) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Admin or Vet role required");
-        }
-    }
 
-    private String extractToken(String authHeader) {
-        if (authHeader != null) {
-            return authHeader;
-        }
-        throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid authorization header");
-    }
 }
 //    public ClinicDto addVetToClinic(String clinicId, String vetId) {
 //        Profile clinic = clinicRepository.findByIdAndRole(clinicId, UserRole.CLINIC)

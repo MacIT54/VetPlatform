@@ -6,7 +6,6 @@ public record UserRegistrationDto(
         @NotBlank String userId,
         @NotBlank String firstName,
         @NotBlank String lastName,
-        String phone,
-        AddressDto address
+        String email
 ) {
 }

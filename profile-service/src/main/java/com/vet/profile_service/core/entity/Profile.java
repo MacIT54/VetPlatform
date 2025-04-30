@@ -38,6 +38,7 @@ public class Profile {
     private String street;
     private String building;
     private String postalCode;
+    private String email;
 
     @DBRef
     private Set<Pet> pets = new HashSet<>();

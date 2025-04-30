@@ -1,0 +1,1067 @@
+openapi: 3.0.1
+info:
+  title: Vet Service API
+  description: API for veterinary management
+  version: "1.0"
+servers:
+- url: http://localhost:8082
+  description: Generated server url
+tags:
+- name: Vet API
+  description: Управление ветеринарами
+- name: Clinic API
+  description: Управление клиниками и ветеринарами
+- name: Pet API
+  description: Управление питомцами и медкартами
+- name: Profile API
+  description: Управление профилями пользователей
+paths:
+  /api/vets/{vetId}:
+    put:
+      tags:
+      - Vet API
+      summary: Обновить данные ветеринара
+      operationId: updateVet
+      parameters:
+      - name: Authorization
+        in: header
+        description: Токен авторизации
+        required: true
+        schema:
+          type: string
+      - name: vetId
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VetUpdateDto"
+        required: true
+      responses:
+        "200":
+          description: Данные обновлены
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/VetDto"
+  /api/profiles/users/me:
+    get:
+      tags:
+      - Profile API
+      summary: Получить мой профиль
+      description: Возвращает данные текущего пользователя
+      operationId: getMyProfile
+      parameters:
+      - name: Authorization
+        in: header
+        description: Токен авторизации
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Успешный запрос
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/UserProfileDto"
+    put:
+      tags:
+      - Profile API
+      summary: Обновить профиль
+      description: Изменяет данные профиля
+      operationId: updateMyProfile
+      parameters:
+      - name: Authorization
+        in: header
+        description: Токен авторизации
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserProfileUpdateDto"
+        required: true
+      responses:
+        "200":
+          description: Профиль обновлен
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/UserProfileDto"
+        "400":
+          description: Неверные данные
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/UserProfileDto"
+        "403":
+          description: Доступ запрещен
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/UserProfileDto"
+        "404":
+          description: Профиль не найден
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/UserProfileDto"
+  /api/profiles/pets/me/pets/{petId}:
+    put:
+      tags:
+      - Pet API
+      summary: Обновить данные питомца
+      operationId: updatePet
+      parameters:
+      - name: Authorization
+        in: header
+        required: true
+        schema:
+          type: string
+      - name: petId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PetUpdateDto"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/PetDto"
+  /api/vets:
+    get:
+      tags:
+      - Vet API
+      summary: Получить всех ветеринаров
+      operationId: getAllVets
+      parameters:
+      - name: Authorization
+        in: header
+        description: Токен авторизации
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Список ветеринаров
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/VetDto"
+    post:
+      tags:
+      - Vet API
+      summary: Добавить нового ветеринара
+      operationId: createVet
+      parameters:
+      - name: Authorization
+        in: header
+        description: Токен авторизации
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VetRegistrationDto"
+        required: true
+      responses:
+        "201":
+          description: Ветеринар создан
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/VetDto"
+  /api/vets/{vetId}/services:
+    post:
+      tags:
+      - Vet API
+      summary: Добавить услугу ветеринару
+      operationId: addServiceToVet
+      parameters:
+      - name: Authorization
+        in: header
+        description: Токен авторизации
+        required: true
+        schema:
+          type: string
+      - name: vetId
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddServiceDto"
+        required: true
+      responses:
+        "200":
+          description: Услуга добавлена
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/VetDto"
+  /api/profiles/users/create:
+    post:
+      tags:
+      - Profile API
+      summary: Создать профиль
+      description: Создает профиль пользователя
+      operationId: createProfile
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserRegistrationDto"
+        required: true
+      responses:
+        "200":
+          description: Профиль создан
+        "400":
+          description: Неверные данные
+        "403":
+          description: Доступ запрещен
+  /api/profiles/pets:
+    post:
+      tags:
+      - Pet API
+      summary: Добавить питомца
+      description: Создает профиль питомца (доступно для владельцев)
+      operationId: addPet
+      parameters:
+      - name: Authorization
+        in: header
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PetRegistrationDto"
+        required: true
+      responses:
+        "201":
+          description: Питомец создан
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/PetRegistrationDto"
+  /api/profiles/pets/{petId}/medical-records:
+    get:
+      tags:
+      - Pet API
+      summary: Получить медкарту питомца
+      description: Возвращает все записи медкарты
+      operationId: getMedicalRecords
+      parameters:
+      - name: petId
+        in: path
+        description: ID питомца
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - name: Authorization
+        in: header
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Успешный запрос
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/MedicalRecordDto"
+    post:
+      tags:
+      - Pet API
+      summary: Добавить запись в медкарту
+      description: Добавляет медицинскую запись для питомца (доступно для ветеринаров)
+      operationId: addMedicalRecord
+      parameters:
+      - name: petId
+        in: path
+        description: ID питомца
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - name: Authorization
+        in: header
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MedicalRecordDto"
+        required: true
+      responses:
+        "201":
+          description: Запись добавлена
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/MedicalRecordDto"
+  /api/profiles/clinics:
+    post:
+      tags:
+      - Clinic API
+      summary: Создать клинику
+      description: Создаёт клинику
+      operationId: createClinic
+      parameters:
+      - name: Authorization
+        in: header
+        description: Токен авторизации
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ClinicRegistrationDto"
+        required: true
+      responses:
+        "200":
+          description: Клиника создана
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ClinicDto"
+  /api/profiles/clinics/{clinicId}/vets/{vetId}:
+    post:
+      tags:
+      - Clinic API
+      summary: Добавить ветеринара в клинику
+      description: Привязывает ветеринара к клинике (доступно для админов и ветеринаров)
+      operationId: addVetToClinic
+      parameters:
+      - name: Authorization
+        in: header
+        description: Токен авторизации
+        required: true
+        schema:
+          type: string
+      - name: clinicId
+        in: path
+        description: ID клиники
+        required: true
+        schema:
+          type: string
+      - name: vetId
+        in: path
+        description: ID ветеринара
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Ветеринар добавлен
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ClinicDto"
+  /api/vets/{vetId}/appointments:
+    get:
+      tags:
+      - Vet API
+      summary: Получить записи на приём
+      operationId: getVetAppointments
+      parameters:
+      - name: Authorization
+        in: header
+        description: Токен авторизации
+        required: true
+        schema:
+          type: string
+      - name: vetId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Список записей
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AppointmentDto"
+  /api/vets/independent:
+    get:
+      tags:
+      - Vet API
+      summary: Получить независимых ветеринаров
+      operationId: getIndependentVets
+      parameters:
+      - name: Authorization
+        in: header
+        description: Токен авторизации
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Список независимых ветеринаров
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/VetDto"
+  /api/vets/by-specialization:
+    get:
+      tags:
+      - Vet API
+      summary: Получить ветеринаров по специализации
+      operationId: getVetsBySpecialization
+      parameters:
+      - name: Authorization
+        in: header
+        description: Токен авторизации
+        required: true
+        schema:
+          type: string
+      - name: specialization
+        in: query
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Список ветеринаров
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/VetDto"
+  /api/vets/by-clinic/{clinicId}:
+    get:
+      tags:
+      - Vet API
+      summary: Получить ветеринаров клиники
+      operationId: getVetsByClinic
+      parameters:
+      - name: Authorization
+        in: header
+        description: Токен авторизации
+        required: true
+        schema:
+          type: string
+      - name: clinicId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Список ветеринаров клиники
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/VetDto"
+  /api/profiles/users/users:
+    get:
+      tags:
+      - Profile API
+      summary: Получить всех пользователей
+      description: Возвращает список пользователей с пагинацией
+      operationId: getAllUsers
+      parameters:
+      - name: page
+        in: query
+        description: Номер страницы (начиная с 0)
+        required: false
+        schema:
+          type: integer
+          format: int32
+          default: 0
+        example: 0
+      - name: size
+        in: query
+        description: Размер страницы
+        required: false
+        schema:
+          type: integer
+          format: int32
+          default: 10
+        example: 10
+      - name: Authorization
+        in: header
+        description: Токен авторизации
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Успешный запрос
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/UserProfileDto"
+  /api/profiles/pets/my:
+    get:
+      tags:
+      - Pet API
+      summary: Получить моих питомцев
+      description: Возвращает список питомцев текущего пользователя
+      operationId: getMyPets
+      parameters:
+      - name: Authorization
+        in: header
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Успешный запрос
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PetRegistrationDto"
+  /api/profiles/clinics/{clinicId}:
+    get:
+      tags:
+      - Clinic API
+      summary: Получить клинику
+      description: Возвращает данные текущей клиники
+      operationId: getClinic
+      parameters:
+      - name: Authorization
+        in: header
+        description: Токен авторизации
+        required: true
+        schema:
+          type: string
+      - name: clinicId
+        in: path
+        description: ID клиники
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "200":
+          description: Успешный запрос
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ClinicShortDto"
+  /api/profiles/clinics/all:
+    get:
+      tags:
+      - Clinic API
+      summary: Получить все клиники
+      description: Возвращает список всех клиник
+      operationId: getAllClinics
+      parameters:
+      - name: Authorization
+        in: header
+        description: Токен авторизации
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Успешный запрос
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ClinicShortDto"
+  /api/profiles/clinics/clinics/{clinicId}:
+    delete:
+      tags:
+      - Clinic API
+      summary: Удалить клинику
+      description: Удаляет клинику по ID (только для админов)
+      operationId: deleteClinic
+      parameters:
+      - name: Authorization
+        in: header
+        description: Токен авторизации
+        required: true
+        schema:
+          type: string
+      - name: clinicId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "404":
+          description: Клиника не найдена
+        "204":
+          description: Клиника удалена
+components:
+  schemas:
+    VetUpdateDto:
+      type: object
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
+        specialization:
+          type: string
+        qualification:
+          type: string
+        bio:
+          type: string
+        services:
+          uniqueItems: true
+          type: array
+          items:
+            type: string
+        clinicId:
+          type: string
+    AddressDto:
+      required:
+      - building
+      - city
+      - street
+      type: object
+      properties:
+        city:
+          type: string
+        street:
+          type: string
+        building:
+          type: string
+      description: Адрес (для независимых ветеринаров)
+    ClinicShortDto:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        logoUrl:
+          type: string
+      description: Клиника (null если независимый)
+    VetDto:
+      type: object
+      properties:
+        id:
+          type: string
+          description: ID ветеринара
+          example: 65a1bc4e3f8d9c1f2e7f8a9c
+        firstName:
+          type: string
+          description: Имя
+          example: Иван
+        lastName:
+          type: string
+          description: Фамилия
+          example: Петров
+        specialization:
+          type: string
+          description: Специализация
+          example: Хирург
+        qualification:
+          type: string
+          description: Квалификация
+          example: Высшая категория
+        bio:
+          type: string
+          description: Биография
+          example: Специалист по ортопедическим операциям
+        email:
+          type: string
+          description: Email
+          example: vet@example.com
+        avatarUrl:
+          type: string
+          description: URL аватара
+          example: https://example.com/avatar.jpg
+        clinic:
+          $ref: "#/components/schemas/ClinicShortDto"
+        services:
+          uniqueItems: true
+          type: array
+          description: Услуги
+          example:
+          - Операции
+          - Консультации
+          items:
+            type: string
+            description: Услуги
+            example: "[\"Операции\",\"Консультации\"]"
+        addressDto:
+          $ref: "#/components/schemas/AddressDto"
+      description: DTO ветеринара
+    UserProfileUpdateDto:
+      required:
+      - firstName
+      - lastName
+      type: object
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
+        phone:
+          type: string
+        address:
+          $ref: "#/components/schemas/AddressDto"
+        avatarUrl:
+          type: string
+    PetShortDto:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        type:
+          type: string
+          enum:
+          - DOG
+          - CAT
+          - BIRD
+          - RODENT
+          - REPTILE
+          - OTHER
+    UserProfileDto:
+      type: object
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        phone:
+          type: string
+        avatarUrl:
+          type: string
+        addressDto:
+          $ref: "#/components/schemas/AddressDto"
+        pets:
+          type: array
+          items:
+            $ref: "#/components/schemas/PetShortDto"
+    PetUpdateDto:
+      required:
+      - name
+      type: object
+      properties:
+        name:
+          type: string
+        type:
+          type: string
+          enum:
+          - DOG
+          - CAT
+          - BIRD
+          - RODENT
+          - REPTILE
+          - OTHER
+        breed:
+          type: string
+        birthDate:
+          type: string
+          format: date
+        chipNumber:
+          type: string
+    MedicalRecordDto:
+      type: object
+      properties:
+        id:
+          type: string
+        diagnosis:
+          type: string
+        treatment:
+          type: string
+        notes:
+          type: string
+        date:
+          type: string
+          format: date
+        vet:
+          $ref: "#/components/schemas/VetShortDto"
+      description: Данные медкарты
+    PetDto:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        type:
+          type: string
+          enum:
+          - DOG
+          - CAT
+          - BIRD
+          - RODENT
+          - REPTILE
+          - OTHER
+        breed:
+          type: string
+        birthDate:
+          type: string
+          format: date
+        chipNumber:
+          type: string
+        medicalRecords:
+          type: array
+          items:
+            $ref: "#/components/schemas/MedicalRecordDto"
+    VetShortDto:
+      type: object
+      properties:
+        id:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        specialization:
+          type: string
+        avatarUrl:
+          type: string
+      description: Список ветеринаров клиники
+    VetRegistrationDto:
+      required:
+      - firstName
+      - lastName
+      - specialization
+      type: object
+      properties:
+        firstName:
+          type: string
+          description: Имя ветеринара
+          example: Иван
+        lastName:
+          type: string
+          description: Фамилия ветеринара
+          example: Петров
+        specialization:
+          type: string
+          description: Специализация
+          example: Хирург
+        qualification:
+          type: string
+          description: Квалификация
+          example: Высшая категория
+        bio:
+          type: string
+          description: Биография
+          example: "Опыт работы 10 лет, специализация на ортопедии"
+        services:
+          uniqueItems: true
+          type: array
+          description: Предоставляемые услуги
+          example:
+          - Консультация
+          - Операция
+          - УЗИ
+          items:
+            type: string
+            description: Предоставляемые услуги
+            example: "[\"Консультация\",\"Операция\",\"УЗИ\"]"
+        addressDto:
+          $ref: "#/components/schemas/AddressDto"
+      description: DTO для регистрации ветеринара
+    AddServiceDto:
+      required:
+      - serviceName
+      type: object
+      properties:
+        serviceName:
+          type: string
+    UserRegistrationDto:
+      required:
+      - firstName
+      - lastName
+      - userId
+      type: object
+      properties:
+        userId:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+    PetRegistrationDto:
+      required:
+      - name
+      - type
+      type: object
+      properties:
+        name:
+          type: string
+        type:
+          type: string
+          enum:
+          - DOG
+          - CAT
+          - BIRD
+          - RODENT
+          - REPTILE
+          - OTHER
+        breed:
+          type: string
+        birthDate:
+          type: string
+          format: date
+        chipNumber:
+          type: string
+      description: Данные питомца
+    ClinicRegistrationDto:
+      required:
+      - address
+      - description
+      - email
+      - licenseNumber
+      - name
+      - phone
+      type: object
+      properties:
+        name:
+          maxLength: 100
+          minLength: 0
+          type: string
+        description:
+          maxLength: 1000
+          minLength: 0
+          type: string
+        phone:
+          pattern: "^\\+?[0-9\\s-]{10,20}$"
+          type: string
+        email:
+          type: string
+        address:
+          $ref: "#/components/schemas/AddressDto"
+        licenseNumber:
+          type: string
+        workingHours:
+          type: array
+          items:
+            type: string
+    ClinicDto:
+      type: object
+      properties:
+        id:
+          type: string
+          description: ID клиники
+          example: 65a1bc4e3f8d9c1f2e7f8a9b
+        name:
+          type: string
+          description: Название клиники
+          example: ВетКлиника №1
+        description:
+          type: string
+          description: Описание
+          example: Современная ветеринарная клиника с полным спектром услуг
+        phone:
+          type: string
+          description: Телефон
+          example: "+79161234567"
+        email:
+          type: string
+          description: Email
+          example: clinic@example.com
+        city:
+          type: string
+          description: Город
+          example: Москва
+        street:
+          type: string
+          description: Улица
+          example: Ленина
+        building:
+          type: string
+          description: Дом
+          example: "10"
+        postalCode:
+          type: string
+          description: Почтовый индекс
+          example: "123456"
+        services:
+          uniqueItems: true
+          type: array
+          description: Услуги клиники
+          example:
+          - Стационар
+          - Лаборатория
+          - Рентген
+          items:
+            type: string
+            description: Услуги клиники
+            example: "[\"Стационар\",\"Лаборатория\",\"Рентген\"]"
+        logoUrl:
+          type: string
+          description: URL логотипа
+          example: https://example.com/logo.png
+        workingHours:
+          type: array
+          description: График работы
+          example:
+          - "Пн-Пт: 9:00-18:00"
+          - "Сб: 10:00-15:00"
+          items:
+            type: string
+            description: График работы
+            example: "[\"Пн-Пт: 9:00-18:00\",\"Сб: 10:00-15:00\"]"
+        vets:
+          type: array
+          description: Список ветеринаров клиники
+          items:
+            $ref: "#/components/schemas/VetShortDto"
+      description: DTO клиники
+    AppointmentDto:
+      type: object
+      properties:
+        id:
+          type: string
+        dateTime:
+          type: string
+          format: date-time
+        petName:
+          type: string
+        ownerName:
+          type: string
+        status:
+          type: string
