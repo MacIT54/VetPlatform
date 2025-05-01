@@ -1,0 +1,7 @@
+package ru.sibsutis.payments_service.core.exception;
+
+public class UnauthorizedException extends RuntimeException {
+    public UnauthorizedException(String message) {
+        super(message);
+    }
+}

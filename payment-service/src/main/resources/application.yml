@@ -1,0 +1,9 @@
+server:
+  port: 8084
+
+stripe:
+  api-key: ${STRIPE_API_KEY}
+
+auth:
+  service:
+    url: http://auth-service:8081
