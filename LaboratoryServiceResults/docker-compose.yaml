@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  lab-service:
+    build:
+      context: ./
+    container_name: lab-service
+    ports:
+      - "8085:8085"
+    volumes:
+      - lab_data:/app/medical_records
+    networks:
+      - vet-network
+    restart: unless-stopped
+
+volumes:
+  lab_data:
+
+networks:
+  vet-network:
+    external: true
+    name: vet-network

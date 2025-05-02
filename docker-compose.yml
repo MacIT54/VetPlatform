@@ -99,6 +99,11 @@ services:
       - redis_data:/data
     networks:
       - vet-network
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 1s
+      timeout: 3s
+      retries: 30
     restart: unless-stopped
 
     # Обновлённый appointment-service
@@ -130,3 +135,5 @@ volumes:
 networks:
   vet-network:
     driver: bridge
+    name: vet-network
+    external: false

@@ -17,17 +17,22 @@ spring:
     hibernate:
       ddl-auto: validate
     show-sql: true
-  redis:
-    host: redis
-    port: 6379
-    timeout: 5000
-    database: 0
-    cache:
-      type: redis
-      redis:
-        time-to-live: 3600000
+  spring:
+    redis:
+      host: localhost
+      port: 6379
+      timeout: 5000
+      database: 0
 
-
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+  api-docs:
+    path: /v3/api-docs
+  info:
+    title: PetClinic Appointment Service API
+    version: 1.0.0
+    description: API для управления записями к ветеринарам и генераии отчётов по анализам
 
 profile:
   service:
@@ -36,6 +41,10 @@ profile:
 auth:
   service:
     url: http://auth-service:8081
+
+laboratory:
+  service:
+    url: http://lab-service:8085
 
 feign:
   client:
