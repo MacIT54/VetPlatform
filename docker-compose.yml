@@ -126,6 +126,23 @@ services:
       - auth-service
     restart: unless-stopped
 
+  # Платежный сервис
+  payment-service:
+    build:
+      context: payment-service
+      dockerfile: Dockerfile
+    container_name: payment-service
+    command: ["java", "-jar", "/app/payment.jar", "--spring.profiles.active=docker"]
+    environment:
+      STRIPE_API_KEY: ${STRIPE_API_KEY}
+    ports:
+      - "8084:8084"
+    networks:
+      - vet-network
+    depends_on:
+      - auth-service
+    restart: unless-stopped
+
 volumes:
   mongodb_data:
   postgres_data:
@@ -137,3 +154,6 @@ networks:
     driver: bridge
     name: vet-network
     external: false
+
+
+
