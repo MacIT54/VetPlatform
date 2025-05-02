@@ -129,7 +129,7 @@ services:
   # Платежный сервис
   payment-service:
     build:
-      context: payment-service
+      context: .
       dockerfile: Dockerfile
     container_name: payment-service
     command: ["java", "-jar", "/app/payment.jar", "--spring.profiles.active=docker"]

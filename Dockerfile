@@ -30,6 +30,8 @@ COPY payment-service/build.gradle ./payment-service/
 COPY payment-service/settings.gradle ./payment-service/
 COPY payment-service/src ./payment-service/src
 
+RUN chmod +x auth-service/gradlew profile-service/gradlew appointment-service/gradlew payment-service/gradlew
+
 # ===== BUILD =====
 RUN cd auth-service && ./gradlew bootJar -x test && mv build/libs/*.jar /workspace/auth.jar
 RUN cd profile-service && ./gradlew bootJar -x test && mv build/libs/*.jar /workspace/profile.jar
