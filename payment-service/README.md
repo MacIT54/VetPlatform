@@ -60,7 +60,7 @@
 
 | Метод | URL | Описание |
 | :--- | :--- | :--- |
-| `POST` | `/payments` | Регистрация пользователя |
+| `POST` | `/payments` | Создание платежа |
 
 ---
 
@@ -70,12 +70,19 @@
 
 ```json
 {
-  "amount": 5000, // это минимальный платеж = 50 рублей, 00 копеек
-  "currency": "RUB",
-  "description": "Payment for order #123"
+  "amount" : 5000, // это минимальный платеж = 50 рублей, 00 копеек
+  "currency" : "RUB",
+  "description" : "Payment for order #123"
 }
 ```
+#### Ответ
 
+```json
+{
+  "clientSecret" : "...",
+  "user" : "username123",
+  "role" : "REGULAR"
+}
 ```
 
 ---
