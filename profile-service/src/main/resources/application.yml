@@ -6,6 +6,12 @@ spring:
     mongodb:
       uri: mongodb://localhost:27017/profile_db
 
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: profile-service-group
+      auto-offset-reset: earliest
+
 springdoc:
   swagger-ui:
     path: /swagger-ui.html

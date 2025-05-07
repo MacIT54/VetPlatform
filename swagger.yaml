@@ -143,6 +143,66 @@ paths:
             '*/*':
               schema:
                 $ref: "#/components/schemas/PetDto"
+  /api/profiles/clinics/{clinicId}:
+    get:
+      tags:
+      - Clinic API
+      summary: Получить клинику
+      description: Возвращает данные текущей клиники
+      operationId: getClinic
+      parameters:
+      - name: Authorization
+        in: header
+        description: Токен авторизации
+        required: true
+        schema:
+          type: string
+      - name: clinicId
+        in: path
+        description: ID клиники
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "200":
+          description: Успешный запрос
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ClinicDto"
+    put:
+      tags:
+      - Clinic API
+      summary: Обновить клинику
+      description: Обновляет данные клиники
+      operationId: updateClinic
+      parameters:
+      - name: Authorization
+        in: header
+        description: Токен авторизации
+        required: true
+        schema:
+          type: string
+      - name: clinicId
+        in: path
+        description: ID клиники
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ClinicUpdateDto"
+        required: true
+      responses:
+        "200":
+          description: Клиника обновлена
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ClinicDto"
   /api/vets:
     get:
       tags:
@@ -388,6 +448,38 @@ paths:
             '*/*':
               schema:
                 $ref: "#/components/schemas/ClinicDto"
+    delete:
+      tags:
+      - Clinic API
+      summary: Удалить ветеринара из клиники
+      description: Отвязывает ветеринара от клиники (доступно для админов и ветеринаров)
+      operationId: deleteVetFromClinic
+      parameters:
+      - name: Authorization
+        in: header
+        description: Токен авторизации
+        required: true
+        schema:
+          type: string
+      - name: clinicId
+        in: path
+        description: ID клиники
+        required: true
+        schema:
+          type: string
+      - name: vetId
+        in: path
+        description: ID ветеринара
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Ветеринар удален
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ClinicDto"
   /api/vets/{vetId}/appointments:
     get:
       tags:
@@ -554,34 +646,6 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/PetRegistrationDto"
-  /api/profiles/clinics/{clinicId}:
-    get:
-      tags:
-      - Clinic API
-      summary: Получить клинику
-      description: Возвращает данные текущей клиники
-      operationId: getClinic
-      parameters:
-      - name: Authorization
-        in: header
-        description: Токен авторизации
-        required: true
-        schema:
-          type: string
-      - name: clinicId
-        in: path
-        description: ID клиники
-        required: true
-        schema:
-          type: integer
-          format: int64
-      responses:
-        "200":
-          description: Успешный запрос
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ClinicShortDto"
   /api/profiles/clinics/all:
     get:
       tags:
@@ -860,6 +924,143 @@ components:
         avatarUrl:
           type: string
       description: Список ветеринаров клиники
+    ClinicUpdateDto:
+      type: object
+      properties:
+        id:
+          type: string
+          description: ID клиники
+          example: 65a1bc4e3f8d9c1f2e7f8a9b
+        name:
+          type: string
+          description: Название клиники
+          example: ВетКлиника №1
+        description:
+          type: string
+          description: Описание
+          example: Современная ветеринарная клиника с полным спектром услуг
+        phone:
+          type: string
+          description: Телефон
+          example: "+79161234567"
+        email:
+          type: string
+          description: Email
+          example: clinic@example.com
+        city:
+          type: string
+          description: Город
+          example: Москва
+        street:
+          type: string
+          description: Улица
+          example: Ленина
+        building:
+          type: string
+          description: Дом
+          example: "10"
+        postalCode:
+          type: string
+          description: Почтовый индекс
+          example: "123456"
+        services:
+          uniqueItems: true
+          type: array
+          description: Услуги клиники
+          example:
+          - Стационар
+          - Лаборатория
+          - Рентген
+          items:
+            type: string
+            description: Услуги клиники
+            example: "[\"Стационар\",\"Лаборатория\",\"Рентген\"]"
+        logoUrl:
+          type: string
+          description: URL логотипа
+          example: https://example.com/logo.png
+        workingHours:
+          type: array
+          description: График работы
+          example:
+          - "Пн-Пт: 9:00-18:00"
+          - "Сб: 10:00-15:00"
+          items:
+            type: string
+            description: График работы
+            example: "[\"Пн-Пт: 9:00-18:00\",\"Сб: 10:00-15:00\"]"
+      description: DTO клиники
+    ClinicDto:
+      type: object
+      properties:
+        id:
+          type: string
+          description: ID клиники
+          example: 65a1bc4e3f8d9c1f2e7f8a9b
+        name:
+          type: string
+          description: Название клиники
+          example: ВетКлиника №1
+        description:
+          type: string
+          description: Описание
+          example: Современная ветеринарная клиника с полным спектром услуг
+        phone:
+          type: string
+          description: Телефон
+          example: "+79161234567"
+        email:
+          type: string
+          description: Email
+          example: clinic@example.com
+        city:
+          type: string
+          description: Город
+          example: Москва
+        street:
+          type: string
+          description: Улица
+          example: Ленина
+        building:
+          type: string
+          description: Дом
+          example: "10"
+        postalCode:
+          type: string
+          description: Почтовый индекс
+          example: "123456"
+        services:
+          uniqueItems: true
+          type: array
+          description: Услуги клиники
+          example:
+          - Стационар
+          - Лаборатория
+          - Рентген
+          items:
+            type: string
+            description: Услуги клиники
+            example: "[\"Стационар\",\"Лаборатория\",\"Рентген\"]"
+        logoUrl:
+          type: string
+          description: URL логотипа
+          example: https://example.com/logo.png
+        workingHours:
+          type: array
+          description: График работы
+          example:
+          - "Пн-Пт: 9:00-18:00"
+          - "Сб: 10:00-15:00"
+          items:
+            type: string
+            description: График работы
+            example: "[\"Пн-Пт: 9:00-18:00\",\"Сб: 10:00-15:00\"]"
+        vets:
+          type: array
+          description: Список ветеринаров клиники
+          items:
+            $ref: "#/components/schemas/VetShortDto"
+      description: DTO клиники
     VetRegistrationDto:
       required:
       - firstName
@@ -980,77 +1181,6 @@ components:
           type: array
           items:
             type: string
-    ClinicDto:
-      type: object
-      properties:
-        id:
-          type: string
-          description: ID клиники
-          example: 65a1bc4e3f8d9c1f2e7f8a9b
-        name:
-          type: string
-          description: Название клиники
-          example: ВетКлиника №1
-        description:
-          type: string
-          description: Описание
-          example: Современная ветеринарная клиника с полным спектром услуг
-        phone:
-          type: string
-          description: Телефон
-          example: "+79161234567"
-        email:
-          type: string
-          description: Email
-          example: clinic@example.com
-        city:
-          type: string
-          description: Город
-          example: Москва
-        street:
-          type: string
-          description: Улица
-          example: Ленина
-        building:
-          type: string
-          description: Дом
-          example: "10"
-        postalCode:
-          type: string
-          description: Почтовый индекс
-          example: "123456"
-        services:
-          uniqueItems: true
-          type: array
-          description: Услуги клиники
-          example:
-          - Стационар
-          - Лаборатория
-          - Рентген
-          items:
-            type: string
-            description: Услуги клиники
-            example: "[\"Стационар\",\"Лаборатория\",\"Рентген\"]"
-        logoUrl:
-          type: string
-          description: URL логотипа
-          example: https://example.com/logo.png
-        workingHours:
-          type: array
-          description: График работы
-          example:
-          - "Пн-Пт: 9:00-18:00"
-          - "Сб: 10:00-15:00"
-          items:
-            type: string
-            description: График работы
-            example: "[\"Пн-Пт: 9:00-18:00\",\"Сб: 10:00-15:00\"]"
-        vets:
-          type: array
-          description: Список ветеринаров клиники
-          items:
-            $ref: "#/components/schemas/VetShortDto"
-      description: DTO клиники
     AppointmentDto:
       type: object
       properties:

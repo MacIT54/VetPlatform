@@ -91,6 +91,8 @@ public class AppointmentController {
     )
     @PostMapping("/{petId}/test-result")
     public LabResultDto storeTestResult(
+            @Parameter(description = "JWT токен авторизации", required = true)
+            @RequestHeader("Authorization") String token,
             @Parameter(description = "ID питомца", required = true, example = "1")
             @PathVariable String petId,
 

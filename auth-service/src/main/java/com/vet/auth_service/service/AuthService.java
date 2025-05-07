@@ -4,10 +4,13 @@ import com.vet.auth_service.api.client.ProfileServiceClient;
 import com.vet.auth_service.api.dto.*;
 import com.vet.auth_service.api.exception.UserBannedException;
 import com.vet.auth_service.model.TokenSession;
+import com.vet.auth_service.model.UserCreatedEvent;
+import com.vet.auth_service.model.UserEvent;
 import com.vet.auth_service.repository.ITokenSessionRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -24,6 +27,7 @@ import com.vet.auth_service.repository.IAuthUserRepository;
 import com.vet.auth_service.security.jwt.JwtTokenProvider;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -35,6 +39,8 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final ITokenSessionRepository tokenSessionRepository;
     private final ProfileServiceClient profileServiceClient;
+
+    private final KafkaTemplate<String, UserEvent> kafkaTemplate;
 
     @Transactional
     public SignupResponse signup(SignupRequest request) {

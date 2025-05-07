@@ -1,6 +1,41 @@
 version: '3.8'
 
 services:
+  # Zookeeper
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.3.0
+    container_name: zookeeper
+    ports:
+      - "2181:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    networks:
+      - vet-network
+    restart: unless-stopped
+
+  # Kafka
+  kafka:
+    image: confluentinc/cp-kafka:7.3.0
+    container_name: kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+      - "29092:29092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_INTERNAL://kafka:9092
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:29092,PLAINTEXT_INTERNAL://0.0.0.0:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+    networks:
+      - vet-network
+    restart: unless-stopped
+
   # MongoDB
   mongodb:
     image: mongo:6.0
@@ -18,7 +53,7 @@ services:
 
   # PostgreSQL
   postgresql:
-    container_name: postgresql  # Изменил имя для консистентности
+    container_name: postgresql
     image: postgres:14
     environment:
       POSTGRES_USER: security_db
@@ -40,10 +75,10 @@ services:
       POSTGRES_PASSWORD: example
       POSTGRES_DB: appointment_db
     ports:
-      - "5433:5432"  # Маппинг на другой хост-порт
+      - "5433:5432"
     volumes:
       - postgres_appointment_data:/var/lib/postgresql/data
-      - ./appointment-service/db/migrations:/docker-entrypoint-initdb.d  # Для миграций
+      - ./appointment-service/db/migrations:/docker-entrypoint-initdb.d
     networks:
       - vet-network
     restart: unless-stopped
@@ -61,6 +96,7 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgresql:5432/security_db
       SPRING_DATASOURCE_USERNAME: security_db
       SPRING_DATASOURCE_PASSWORD: example
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
     ports:
       - "8081:8081"
     networks:
@@ -68,6 +104,7 @@ services:
     depends_on:
       - mongodb
       - postgresql
+      - kafka
     restart: unless-stopped
 
   # Сервис профилей
@@ -80,6 +117,7 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: docker
       SPRING_DATA_MONGODB_URI: mongodb://root:example@mongodb:27017/profile_db?authSource=admin
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
     ports:
       - "8082:8082"
     networks:
@@ -87,6 +125,7 @@ services:
     depends_on:
       - mongodb
       - auth-service
+      - kafka
     restart: unless-stopped
 
   # Redis
@@ -106,7 +145,7 @@ services:
       retries: 30
     restart: unless-stopped
 
-    # Обновлённый appointment-service
+  # Сервис назначений
   appointment-service:
     build:
       context: .
@@ -115,6 +154,7 @@ services:
     command: [ "java", "-jar", "/app/appointment.jar", "--spring.profiles.active=docker" ]
     environment:
       SPRING_PROFILES_ACTIVE: docker
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
     ports:
       - "8083:8083"
     networks:
@@ -124,6 +164,7 @@ services:
       - redis
       - profile-service
       - auth-service
+      - kafka
     restart: unless-stopped
 
   # Платежный сервис
@@ -135,12 +176,14 @@ services:
     command: ["java", "-jar", "/app/payment.jar", "--spring.profiles.active=docker"]
     environment:
       STRIPE_API_KEY: ${STRIPE_API_KEY}
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
     ports:
       - "8084:8084"
     networks:
       - vet-network
     depends_on:
       - auth-service
+      - kafka
     restart: unless-stopped
 
 volumes:
@@ -153,7 +196,5 @@ networks:
   vet-network:
     driver: bridge
     name: vet-network
+    attachable: true
     external: false
-
-
-

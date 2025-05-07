@@ -7,6 +7,7 @@ import com.vet.profile_service.api.dto.AddressDto;
 import com.vet.profile_service.api.dto.ClinicDto;
 import com.vet.profile_service.api.dto.ClinicRegistrationDto;
 import com.vet.profile_service.api.dto.ClinicShortDto;
+import com.vet.profile_service.api.dto.ClinicUpdateDto;
 import com.vet.profile_service.api.dto.UserRole;
 import com.vet.profile_service.api.dto.VetDto;
 import com.vet.profile_service.api.dto.VetRegistrationDto;
@@ -52,6 +53,27 @@ public class ClinicService {
         return mapToClinicDto(savedClinic);
     }
 
+    public ClinicDto updateClinic(ClinicUpdateDto dto, String token, String clinicId) {
+        tokenVerifyService.verifyTokenAndCheckAdminRole(token);
+        Clinic clinic = clinicRepository.findById(clinicId)
+                .orElseThrow(() -> new ServiceException(ErrorCode.NOT_FOUND, "Clinic not found"));
+
+        clinic.setName(dto.name());
+        clinic.setDescription(dto.description());
+        clinic.setPhone(dto.phone());
+        clinic.setEmail(dto.email());
+        clinic.setCity(dto.city());
+        clinic.setStreet(dto.street());
+        clinic.setBuilding(dto.building());
+        clinic.setPostalCode(dto.postalCode());
+        clinic.setServices(dto.services());
+        clinic.setLogoUrl(dto.logoUrl());
+        clinic.setWorkingHours(dto.workingHours());
+
+        Clinic updatedClinic = clinicRepository.save(clinic);
+        return mapToClinicDto(updatedClinic);
+    }
+
     public ClinicDto addVetToClinic(String clinicId, String vetId, String token) {
         tokenVerifyService.verifyTokenAndCheckAdminOrVetRole(token);
         Clinic clinic = clinicRepository.findById(clinicId)
@@ -69,11 +91,32 @@ public class ClinicService {
         return mapToClinicDto(clinic);
     }
 
-    public ClinicShortDto getClinic(String clinicId, String token) {
+    public ClinicDto deleteVetFromClinic(String clinicId, String vetId, String token) {
+        tokenVerifyService.verifyTokenAndCheckAdminOrVetRole(token);
+        Clinic clinic = clinicRepository.findById(clinicId)
+                .orElseThrow(() -> new ServiceException(ErrorCode.NOT_FOUND, "Clinic not found"));
+
+        Vet vet = vetRepository.findById(vetId)
+                .orElseThrow(() -> new ServiceException(ErrorCode.NOT_FOUND, "Vet not found"));
+
+        if (!clinic.getVets().contains(vet)) {
+            throw new ServiceException(ErrorCode.BAD_REQUEST, "Vet is not associated with this clinic");
+        }
+
+        vet.setClinic(null);
+        clinic.getVets().remove(vet);
+
+        vetRepository.save(vet);
+        clinicRepository.save(clinic);
+
+        return mapToClinicDto(clinic);
+    }
+
+    public ClinicDto getClinic(String clinicId, String token) {
         tokenVerifyService.verifyToken(token);
         Clinic clinic = clinicRepository.findById(clinicId)
                 .orElseThrow(() -> new ServiceException(ErrorCode.NOT_FOUND, "Clinic not found"));
-        return new ClinicShortDto(clinic.getId(), clinic.getName(), clinic.getLogoUrl());
+        return mapToClinicDto(clinic);
     }
 
     public List<ClinicShortDto> getAllClinics(String token) {
@@ -138,9 +181,6 @@ public class ClinicService {
         clinic.setDeleted(true);
         clinicRepository.save(clinic);
     }
-
-
-
 }
 //    public ClinicDto addVetToClinic(String clinicId, String vetId) {
 //        Profile clinic = clinicRepository.findByIdAndRole(clinicId, UserRole.CLINIC)

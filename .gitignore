@@ -36,5 +36,9 @@ out/
 ### VS Code ###
 .vscode/
 
+<<<<<<< Updated upstream
 ### .env ###
 .env
+=======
+.DS_Store
+>>>>>>> Stashed changes
